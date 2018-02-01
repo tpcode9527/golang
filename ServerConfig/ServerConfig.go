@@ -13,6 +13,7 @@ type IConfig interface {
 	IsModify() bool
 	ReadContent() ([]byte, error)
 	LoadItems(content []byte) error
+	ParseConfig() error
 }
 
 //基本配置信息
@@ -57,3 +58,57 @@ func (pConfig *BaseConfig) LoadItems(content []byte) error {
 	fmt.Println("BaseConfig::LoadItems")
 	return nil
 }
+
+/*
+* 解析配置文件
+ */
+func (this *BaseConfig) ParseConfig() error {
+	//读取文件数据
+	content, err := this.ReadContent()
+	if err != nil {
+		fmt.Println("Read fail. error:", err)
+	} else {
+
+		//解析配置文件内容
+		if err = this.LoadItems(content); nil != err {
+			fmt.Println("Parse config fail. error:", err)
+		}
+	}
+	return err
+}
+
+/*
+//时刻检测配置文件变化示例
+func DetectConfig(chStop chan int, chEnd chan int, sConfig IConfig) {
+	for {
+		select {
+		case <-chStop:
+			fmt.Println("Receive stop channel")
+			break
+		default:
+		}
+
+		//定时监测配置文件
+		time.Sleep(50 * time.Millisecond)
+		//fmt.Printf("Detect config file. runtine pid:%d ppid:%d\n", os.Getpid(), os.Getppid())
+
+		//检测是否有文件变化
+		if sConfig.IsModify() {
+
+			//读取文件数据
+			content, err := sConfig.ReadContent()
+			if err != nil {
+				fmt.Println("Read fail. error:", err)
+			} else {
+
+				//解析配置文件内容
+				if err = sConfig.LoadItems(content); nil != err {
+					fmt.Println("Parse config fail. error:", err)
+				}
+			}
+		}
+	}
+	fmt.Println("Quit DetectConfig")
+	chEnd <- 1
+}
+*/

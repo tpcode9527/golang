@@ -3,12 +3,11 @@ package liblog
 /**/
 import (
 	"errors"
-	"fmt"
+	"log"
 	"os"
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 )
 
 /* 日志类型 */
@@ -38,9 +37,10 @@ type LogParam struct {
 
 /*基本日志文件信息*/
 type LogFileInfo struct {
-	path string
-	file *os.File
-	mtx  *sync.RWMutex
+	path   string
+	file   *os.File
+	logger *log.Logger
+	mtx    *sync.RWMutex
 }
 
 /*日志实例参数*/
@@ -94,7 +94,7 @@ func PathExists(path string) (bool, error) {
 func GetFileSize(file string) int64 {
 	sFileInfo, err := os.Stat(file)
 	if nil != err {
-		fmt.Println("Load config fail. error:", err)
+		log.Println("Load config fail. error:", err)
 		return -1
 	}
 	return sFileInfo.Size()
@@ -119,16 +119,18 @@ func (this *LogFileInfo) openFile_unsafe() error {
 	if bResult, _ := PathExists(this.path); bResult {
 		this.file, err = os.OpenFile(this.path, os.O_RDWR|os.O_APPEND, 0666)
 		if nil != err {
-			fmt.Println("Open file fail. error:", err)
+			log.Println("Open file fail. error:", err)
 			return err
 		}
 	} else {
 		this.file, err = os.OpenFile(this.path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
 		if nil != err {
-			fmt.Println("Create file fail. error:", err)
+			log.Println("Create file fail. error:", err)
 			return err
 		}
 	}
+	this.logger = log.New(this.file, "", log.Ldate|log.Lmicroseconds)
+
 	return nil
 }
 
@@ -159,22 +161,13 @@ func (this *LogFileInfo) writeFile(a ...interface{}) error {
 	defer this.mtx.RUnlock()
 
 	if !this.isFileValid_unsafe() {
-		fmt.Println("File is not openning.")
+		log.Println("File is not openning.")
 		return errors.New("File is not openning.")
 	}
 
-	_, err := fmt.Fprintln(this.file, a)
-	/*
-			text := fmt.Sprintf("%s\n", a)
-			_, err := this.file.WriteString(text)
-			if nil != err {
-			fmt.Println("WriteString fail. error: ", err)
-		} else {
-			this.file.Sync()
-		}
-	*/
+	this.logger.Println(a)
+	return nil
 
-	return err
 }
 
 /*关闭文件*/
@@ -202,7 +195,7 @@ func (this *LogFileInfo) renameFile(dstFile string) error {
 
 	err := os.Rename(this.path, dstFile)
 	if nil != err {
-		fmt.Println("Rename ", this.path, " to ", dstFile, " fail. error: ", err)
+		log.Println("Rename ", this.path, " to ", dstFile, " fail. error: ", err)
 		return err
 	}
 
@@ -231,7 +224,7 @@ func (this *LogFileInfo) rollFile(path string, logType int, prefix string, fileN
 	srcFile = getLogFile(path, logType, prefix, 0)
 	err2 := os.Rename(srcFile, dstFile)
 	if nil != err2 {
-		fmt.Println("Rename fail. error: ", err2)
+		log.Println("Rename fail. error: ", err2)
 	}
 
 	//重新打开文件
@@ -289,18 +282,24 @@ func (this *LogInstance) getFilePath(logType int, seq int) string {
 	return getLogFile(this.LogParm.Path, logType, this.LogParm.Prefix, seq)
 }
 
-/*初始化日志文件配置*/
-func (this *LogInstance) InitLog(path string, prefix string, logLevel int, logSize int64, logNum int) error {
+func (this *LogInstance) SetLogLevel(logLevel int) {
 	//纠正日志级别
 	if logLevel > LOG_LEVEL_FATAL {
 		logLevel = LOG_LEVEL_FATAL
 	} else if logLevel < LOG_LEVEL_TRACE {
 		logLevel = LOG_LEVEL_TRACE
 	}
+	this.LogParm.LogLevel = logLevel
+}
+
+/*初始化日志文件配置*/
+func (this *LogInstance) InitLog(path string, prefix string, logLevel int, logSize int64, logNum int) error {
+	//纠正日志级别
+	this.SetLogLevel(logLevel)
 
 	//日志文件设置
 	if logSize < 1 || logNum < 1 {
-		fmt.Println("Init log fail.")
+		log.Println("Init log fail.")
 		return errors.New("Init log fail.")
 	}
 
@@ -349,12 +348,12 @@ func (this *LogInstance) SaveLog(logType int, logLevel int, a ...interface{}) er
 
 	fileInfo, ok := this.FileInfo[logType]
 	if !ok || !fileInfo.isFileValid() {
-		fmt.Println("File is not open or config missing. or:", ok)
-		_, err := fmt.Println(time.Now().Format("2006-01-02 15:04:05"), mapLogLevel[logLevel], a)
-		return err
+		//log.Println("File is not open or config missing. or:", ok)
+		log.Print(mapLogLevel[logLevel], a)
+		return nil
 	}
 
-	return this.writeLogFile(logType, time.Now().Format("2006-01-02 15:04:05"), mapLogLevel[logLevel], a)
+	return this.writeLogFile(logType, mapLogLevel[logLevel], a)
 }
 
 /********************** 系统日志 **************************/
@@ -417,6 +416,13 @@ func (this *LogInstance) RunLogFatal(a ...interface{}) error {
  */
 func InitLogConfig(path string, prefix string, logLevel int, logSize int64, logNum int) error {
 	return inst.InitLog(path, prefix, logLevel, logSize, logNum)
+}
+
+/*
+* 更改日志等级
+ */
+func SetLogLevel(logLevel int) {
+	inst.SetLogLevel(logLevel)
 }
 
 /********************** 系统日志 **************************/
