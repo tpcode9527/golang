@@ -3,8 +3,10 @@ package liblog
 /**/
 import (
 	"errors"
+	//"fmt"
 	"log"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -155,17 +157,40 @@ func (this *LogFileInfo) isFileValid() bool {
 	return this.isFileValid_unsafe()
 }
 
+type Stringer interface {
+	String() string
+}
+
 /*保存内容*/
 func (this *LogFileInfo) writeFile(a ...interface{}) error {
 	this.mtx.RLock()
 	defer this.mtx.RUnlock()
 
+	//如果不需要将日志保存至文件直接显示在控制台
 	if !this.isFileValid_unsafe() {
 		log.Println("File is not openning.")
 		return errors.New("File is not openning.")
 	}
 
-	this.logger.Println(a)
+	//目前的代码调用堆栈等级刚好是6如果外部修改注意同步修改
+	_, file, line, _ := runtime.Caller(6)
+	this.logger.Println(a, file, line)
+	/*
+		text := make([]string, 0)
+		for _, res := range a {
+			switch res.(type) {
+			case int:
+				text = append(text, strconv.Itoa(res.(int)))
+				fmt.Println("int type")
+			case string:
+				text = append(text, res.(string))
+				fmt.Println("string type")
+			default:
+			}
+		}
+		fmt.Println(text, file, line)
+		this.logger.Println(text, file, line)
+	*/
 	return nil
 
 }

@@ -79,14 +79,14 @@ func (this *MysqlInst) Open(user string, password string, server string, port st
 		this.Inst.SetMaxIdleConns(this.MaxConn)
 	}
 
-	this.FnPrint("Open success.")
+	//this.FnPrint("Open success.")
 
 	err = this.Inst.Ping()
 	if nil != err {
 		this.FnPrint("Ping mysql fail. error:", err)
 		return err
 	}
-	this.FnPrint("Ping success.")
+	//this.FnPrint("Ping success.")
 
 	return err
 }
