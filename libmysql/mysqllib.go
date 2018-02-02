@@ -102,7 +102,7 @@ func (this *MysqlInst) Query(sql string) ([]map[string]string, error) {
 	}
 	defer rows.Close()
 
-	resut = make([]map[string]string, 1)
+	resut = make([]map[string]string, 0)
 
 	columns, _ := rows.Columns()
 	//this.FnPrint("Columns:", columns)
@@ -113,14 +113,14 @@ func (this *MysqlInst) Query(sql string) ([]map[string]string, error) {
 		scanArgs[j] = &values[j]
 	}
 
-	i := 0
+	//i := 0
 
 	for rows.Next() {
 
 		//将行数据保存到record字典
 		err = rows.Scan(scanArgs...)
 
-		resut[i] = make(map[string]string)
+		//resut[i] = make(map[string]string)
 		record := make(map[string]string)
 
 		for i, col := range values {
