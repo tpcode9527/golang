@@ -162,7 +162,7 @@ type Stringer interface {
 }
 
 /*保存内容*/
-func (this *LogFileInfo) writeFile(a ...interface{}) error {
+func (this *LogFileInfo) writeFile(level string, a ...interface{}) error {
 	this.mtx.RLock()
 	defer this.mtx.RUnlock()
 
@@ -174,7 +174,7 @@ func (this *LogFileInfo) writeFile(a ...interface{}) error {
 
 	//目前的代码调用堆栈等级刚好是6如果外部修改注意同步修改
 	_, file, line, _ := runtime.Caller(6)
-	this.logger.Println(a, file, line)
+	this.logger.Println(level, a, file, line)
 	/*
 		text := make([]string, 0)
 		for _, res := range a {
@@ -262,8 +262,9 @@ func (this *LogFileInfo) rollFile(path string, logType int, prefix string, fileN
 }
 
 /*记录日志*/
-func (this *LogFileInfo) writeLog(path string, logType int, prefix string, fileNum int, fileSize int64, a ...interface{}) error {
-	err := this.writeFile(a)
+func (this *LogFileInfo) writeLog(path string, logType int, prefix string, fileNum int,
+	fileSize int64, level string, a ...interface{}) error {
+	err := this.writeFile(level, a...)
 	if nil != err {
 		return err
 	}
@@ -358,8 +359,8 @@ func (this *LogInstance) InitLog(path string, prefix string, logLevel int, logSi
 }
 
 /*向日志文件中写入日志*/
-func (this *LogInstance) writeLogFile(logType int, a ...interface{}) error {
-	return this.FileInfo[logType].writeLog(this.LogParm.Path, logType, this.LogParm.Prefix, this.LogParm.LogNum, this.LogParm.LogSize, a)
+func (this *LogInstance) writeLogFile(logType int, level string, a ...interface{}) error {
+	return this.FileInfo[logType].writeLog(this.LogParm.Path, logType, this.LogParm.Prefix, this.LogParm.LogNum, this.LogParm.LogSize, level, a...)
 }
 
 /*
@@ -378,57 +379,57 @@ func (this *LogInstance) SaveLog(logType int, logLevel int, a ...interface{}) er
 		return nil
 	}
 
-	return this.writeLogFile(logType, mapLogLevel[logLevel], a)
+	return this.writeLogFile(logType, mapLogLevel[logLevel], a...)
 }
 
 /********************** 系统日志 **************************/
 func (this *LogInstance) LogTrace(a ...interface{}) error {
-	return this.SaveLog(LOG_TYPE_SYS, LOG_LEVEL_TRACE, a)
+	return this.SaveLog(LOG_TYPE_SYS, LOG_LEVEL_TRACE, a...)
 }
 
 func (this *LogInstance) LogDebug(a ...interface{}) error {
-	return this.SaveLog(LOG_TYPE_SYS, LOG_LEVEL_DEBUG, a)
+	return this.SaveLog(LOG_TYPE_SYS, LOG_LEVEL_DEBUG, a...)
 }
 
 func (this *LogInstance) LogInfo(a ...interface{}) error {
-	return this.SaveLog(LOG_TYPE_SYS, LOG_LEVEL_INFO, a)
+	return this.SaveLog(LOG_TYPE_SYS, LOG_LEVEL_INFO, a...)
 }
 
 func (this *LogInstance) LogWarn(a ...interface{}) error {
-	return this.SaveLog(LOG_TYPE_SYS, LOG_LEVEL_WARN, a)
+	return this.SaveLog(LOG_TYPE_SYS, LOG_LEVEL_WARN, a...)
 }
 
 func (this *LogInstance) LogError(a ...interface{}) error {
-	return this.SaveLog(LOG_TYPE_SYS, LOG_LEVEL_ERROR, a)
+	return this.SaveLog(LOG_TYPE_SYS, LOG_LEVEL_ERROR, a...)
 }
 
 func (this *LogInstance) LogFatal(a ...interface{}) error {
-	return this.SaveLog(LOG_TYPE_SYS, LOG_LEVEL_FATAL, a)
+	return this.SaveLog(LOG_TYPE_SYS, LOG_LEVEL_FATAL, a...)
 }
 
 /********************** 运行日志 **************************/
 func (this *LogInstance) RunLogTrace(a ...interface{}) error {
-	return this.SaveLog(LOG_TYPE_RUN, LOG_LEVEL_TRACE, a)
+	return this.SaveLog(LOG_TYPE_RUN, LOG_LEVEL_TRACE, a...)
 }
 
 func (this *LogInstance) RunLogDebug(a ...interface{}) error {
-	return this.SaveLog(LOG_TYPE_RUN, LOG_LEVEL_DEBUG, a)
+	return this.SaveLog(LOG_TYPE_RUN, LOG_LEVEL_DEBUG, a...)
 }
 
 func (this *LogInstance) RunLogInfo(a ...interface{}) error {
-	return this.SaveLog(LOG_TYPE_RUN, LOG_LEVEL_INFO, a)
+	return this.SaveLog(LOG_TYPE_RUN, LOG_LEVEL_INFO, a...)
 }
 
 func (this *LogInstance) RunLogWarn(a ...interface{}) error {
-	return this.SaveLog(LOG_TYPE_RUN, LOG_LEVEL_WARN, a)
+	return this.SaveLog(LOG_TYPE_RUN, LOG_LEVEL_WARN, a...)
 }
 
 func (this *LogInstance) RunLogError(a ...interface{}) error {
-	return this.SaveLog(LOG_TYPE_RUN, LOG_LEVEL_ERROR, a)
+	return this.SaveLog(LOG_TYPE_RUN, LOG_LEVEL_ERROR, a...)
 }
 
 func (this *LogInstance) RunLogFatal(a ...interface{}) error {
-	return this.SaveLog(LOG_TYPE_RUN, LOG_LEVEL_FATAL, a)
+	return this.SaveLog(LOG_TYPE_RUN, LOG_LEVEL_FATAL, a...)
 }
 
 /*
@@ -452,27 +453,27 @@ func SetLogLevel(logLevel int) {
 
 /********************** 系统日志 **************************/
 func LogTrace(a ...interface{}) error {
-	return inst.LogTrace(a)
+	return inst.LogTrace(a...)
 }
 
 func LogDebug(a ...interface{}) error {
-	return inst.LogDebug(a)
+	return inst.LogDebug(a...)
 }
 
 func LogInfo(a ...interface{}) error {
-	return inst.LogInfo(a)
+	return inst.LogInfo(a...)
 }
 
 func LogWarn(a ...interface{}) error {
-	return inst.LogWarn(a)
+	return inst.LogWarn(a...)
 }
 
 func LogError(a ...interface{}) error {
-	return inst.LogError(a)
+	return inst.LogError(a...)
 }
 
 func LogFatal(a ...interface{}) error {
-	return inst.LogFatal(a)
+	return inst.LogFatal(a...)
 }
 
 /********************** 运行日志 **************************/
@@ -481,21 +482,21 @@ func RunLogTrace(a ...interface{}) error {
 }
 
 func RunLogDebug(a ...interface{}) error {
-	return inst.RunLogDebug(a)
+	return inst.RunLogDebug(a...)
 }
 
 func RunLogInfo(a ...interface{}) error {
-	return inst.RunLogInfo(a)
+	return inst.RunLogInfo(a...)
 }
 
 func RunLogWarn(a ...interface{}) error {
-	return inst.RunLogWarn(a)
+	return inst.RunLogWarn(a...)
 }
 
 func RunLogError(a ...interface{}) error {
-	return inst.RunLogError(a)
+	return inst.RunLogError(a...)
 }
 
 func RunLogFatal(a ...interface{}) error {
-	return inst.RunLogFatal(a)
+	return inst.RunLogFatal(a...)
 }

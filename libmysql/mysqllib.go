@@ -105,7 +105,6 @@ func (this *MysqlInst) Query(sql string) ([]map[string]string, error) {
 	resut = make([]map[string]string, 0)
 
 	columns, _ := rows.Columns()
-	//this.FnPrint("Columns:", columns)
 
 	scanArgs := make([]interface{}, len(columns))
 	values := make([]interface{}, len(columns))
@@ -113,14 +112,11 @@ func (this *MysqlInst) Query(sql string) ([]map[string]string, error) {
 		scanArgs[j] = &values[j]
 	}
 
-	//i := 0
-
 	for rows.Next() {
 
 		//将行数据保存到record字典
 		err = rows.Scan(scanArgs...)
 
-		//resut[i] = make(map[string]string)
 		record := make(map[string]string)
 
 		for i, col := range values {
@@ -131,8 +127,6 @@ func (this *MysqlInst) Query(sql string) ([]map[string]string, error) {
 
 		resut = append(resut, record)
 	}
-
-	//this.FnPrint("recod:", resut)
 
 	return resut, err
 }

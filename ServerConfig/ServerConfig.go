@@ -23,21 +23,21 @@ type BaseConfig struct {
 }
 
 //初始化配置文件路径
-func (pConfig *BaseConfig) Init(path string) {
-	pConfig.FilePath = path
+func (this *BaseConfig) Init(path string) {
+	this.FilePath = path
 }
 
 //判定文件是否被修改
-func (pConfig *BaseConfig) IsModify() bool {
-	sFileInfo, err := os.Stat(pConfig.FilePath)
+func (this *BaseConfig) IsModify() bool {
+	sFileInfo, err := os.Stat(this.FilePath)
 	if nil != err {
 		fmt.Println("Load config fail. error:", err)
 		return false
 	}
 
 	fileTime := sFileInfo.ModTime()
-	if pConfig.LastTime != fileTime {
-		pConfig.LastTime = fileTime
+	if this.LastTime != fileTime {
+		this.LastTime = fileTime
 		return true
 	}
 
@@ -45,8 +45,8 @@ func (pConfig *BaseConfig) IsModify() bool {
 }
 
 //读取文件信息
-func (pConfig *BaseConfig) ReadContent() ([]byte, error) {
-	content, err := ioutil.ReadFile(pConfig.FilePath)
+func (this *BaseConfig) ReadContent() ([]byte, error) {
+	content, err := ioutil.ReadFile(this.FilePath)
 	if err != nil {
 		fmt.Println("Read file fail. error:", err)
 	}
@@ -54,7 +54,7 @@ func (pConfig *BaseConfig) ReadContent() ([]byte, error) {
 }
 
 //读取基本配置项目信息
-func (pConfig *BaseConfig) LoadItems(content []byte) error {
+func (this *BaseConfig) LoadItems(content []byte) error {
 	fmt.Println("BaseConfig::LoadItems")
 	return nil
 }
