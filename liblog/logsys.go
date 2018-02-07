@@ -162,7 +162,7 @@ type Stringer interface {
 }
 
 /*保存内容*/
-func (this *LogFileInfo) writeFile(level string, a ...interface{}) error {
+func (this *LogFileInfo) writeFile(level string, skip int, a ...interface{}) error {
 	this.mtx.RLock()
 	defer this.mtx.RUnlock()
 
@@ -172,25 +172,12 @@ func (this *LogFileInfo) writeFile(level string, a ...interface{}) error {
 		return errors.New("File is not openning.")
 	}
 
-	//目前的代码调用堆栈等级刚好是6如果外部修改注意同步修改
-	_, file, line, _ := runtime.Caller(6)
+	//目前的代码调用堆栈等级由外部逐层累加传入便于日志显示代码日志的位置
+	//允许外部传入的好处是外部如果封装日志也可以预先设置堆栈等级便于精确日志位置
+	skip++
+	_, file, line, _ := runtime.Caller(skip)
 	this.logger.Println(level, a, file, line)
-	/*
-		text := make([]string, 0)
-		for _, res := range a {
-			switch res.(type) {
-			case int:
-				text = append(text, strconv.Itoa(res.(int)))
-				fmt.Println("int type")
-			case string:
-				text = append(text, res.(string))
-				fmt.Println("string type")
-			default:
-			}
-		}
-		fmt.Println(text, file, line)
-		this.logger.Println(text, file, line)
-	*/
+
 	return nil
 
 }
@@ -262,9 +249,9 @@ func (this *LogFileInfo) rollFile(path string, logType int, prefix string, fileN
 }
 
 /*记录日志*/
-func (this *LogFileInfo) writeLog(path string, logType int, prefix string, fileNum int,
-	fileSize int64, level string, a ...interface{}) error {
-	err := this.writeFile(level, a...)
+func (this *LogFileInfo) writeLog(path string, logType int, prefix string, fileNum int, fileSize int64, level string, skip int, a ...interface{}) error {
+	skip++
+	err := this.writeFile(level, skip, a...)
 	if nil != err {
 		return err
 	}
@@ -359,14 +346,16 @@ func (this *LogInstance) InitLog(path string, prefix string, logLevel int, logSi
 }
 
 /*向日志文件中写入日志*/
-func (this *LogInstance) writeLogFile(logType int, level string, a ...interface{}) error {
-	return this.FileInfo[logType].writeLog(this.LogParm.Path, logType, this.LogParm.Prefix, this.LogParm.LogNum, this.LogParm.LogSize, level, a...)
+func (this *LogInstance) writeLogFile(logType int, level string, skip int, a ...interface{}) error {
+	skip++
+	return this.FileInfo[logType].writeLog(this.LogParm.Path, logType, this.LogParm.Prefix,
+		this.LogParm.LogNum, this.LogParm.LogSize, level, skip, a...)
 }
 
 /*
 * 保存日志信息
  */
-func (this *LogInstance) SaveLog(logType int, logLevel int, a ...interface{}) error {
+func (this *LogInstance) SaveLog(logType int, logLevel int, skip int, a ...interface{}) error {
 	//对于配置的日志等级以下的日志信息不予显示
 	if logLevel < inst.LogParm.LogLevel {
 		return nil
@@ -378,58 +367,70 @@ func (this *LogInstance) SaveLog(logType int, logLevel int, a ...interface{}) er
 		log.Print(mapLogLevel[logLevel], a)
 		return nil
 	}
-
-	return this.writeLogFile(logType, mapLogLevel[logLevel], a...)
+	skip++
+	return this.writeLogFile(logType, mapLogLevel[logLevel], skip, a...)
 }
 
 /********************** 系统日志 **************************/
-func (this *LogInstance) LogTrace(a ...interface{}) error {
-	return this.SaveLog(LOG_TYPE_SYS, LOG_LEVEL_TRACE, a...)
+func (this *LogInstance) LogTrace(skip int, a ...interface{}) error {
+	skip++
+	return this.SaveLog(LOG_TYPE_SYS, LOG_LEVEL_TRACE, skip, a...)
 }
 
-func (this *LogInstance) LogDebug(a ...interface{}) error {
-	return this.SaveLog(LOG_TYPE_SYS, LOG_LEVEL_DEBUG, a...)
+func (this *LogInstance) LogDebug(skip int, a ...interface{}) error {
+	skip++
+	return this.SaveLog(LOG_TYPE_SYS, LOG_LEVEL_DEBUG, skip, a...)
 }
 
-func (this *LogInstance) LogInfo(a ...interface{}) error {
-	return this.SaveLog(LOG_TYPE_SYS, LOG_LEVEL_INFO, a...)
+func (this *LogInstance) LogInfo(skip int, a ...interface{}) error {
+	skip++
+	return this.SaveLog(LOG_TYPE_SYS, LOG_LEVEL_INFO, skip, a...)
 }
 
-func (this *LogInstance) LogWarn(a ...interface{}) error {
-	return this.SaveLog(LOG_TYPE_SYS, LOG_LEVEL_WARN, a...)
+func (this *LogInstance) LogWarn(skip int, a ...interface{}) error {
+	skip++
+	return this.SaveLog(LOG_TYPE_SYS, LOG_LEVEL_WARN, skip, a...)
 }
 
-func (this *LogInstance) LogError(a ...interface{}) error {
-	return this.SaveLog(LOG_TYPE_SYS, LOG_LEVEL_ERROR, a...)
+func (this *LogInstance) LogError(skip int, a ...interface{}) error {
+	skip++
+	return this.SaveLog(LOG_TYPE_SYS, LOG_LEVEL_ERROR, skip, a...)
 }
 
-func (this *LogInstance) LogFatal(a ...interface{}) error {
-	return this.SaveLog(LOG_TYPE_SYS, LOG_LEVEL_FATAL, a...)
+func (this *LogInstance) LogFatal(skip int, a ...interface{}) error {
+	skip++
+	return this.SaveLog(LOG_TYPE_SYS, LOG_LEVEL_FATAL, skip, a...)
 }
 
 /********************** 运行日志 **************************/
-func (this *LogInstance) RunLogTrace(a ...interface{}) error {
-	return this.SaveLog(LOG_TYPE_RUN, LOG_LEVEL_TRACE, a...)
+func (this *LogInstance) RunLogTrace(skip int, a ...interface{}) error {
+	skip++
+	return this.SaveLog(LOG_TYPE_RUN, LOG_LEVEL_TRACE, skip, a...)
 }
 
-func (this *LogInstance) RunLogDebug(a ...interface{}) error {
-	return this.SaveLog(LOG_TYPE_RUN, LOG_LEVEL_DEBUG, a...)
+func (this *LogInstance) RunLogDebug(skip int, a ...interface{}) error {
+	skip++
+	return this.SaveLog(LOG_TYPE_RUN, LOG_LEVEL_DEBUG, skip, a...)
 }
 
-func (this *LogInstance) RunLogInfo(a ...interface{}) error {
-	return this.SaveLog(LOG_TYPE_RUN, LOG_LEVEL_INFO, a...)
+func (this *LogInstance) RunLogInfo(skip int, a ...interface{}) error {
+	skip++
+	return this.SaveLog(LOG_TYPE_RUN, LOG_LEVEL_INFO, skip, a...)
 }
 
-func (this *LogInstance) RunLogWarn(a ...interface{}) error {
-	return this.SaveLog(LOG_TYPE_RUN, LOG_LEVEL_WARN, a...)
+func (this *LogInstance) RunLogWarn(skip int, a ...interface{}) error {
+	skip++
+	return this.SaveLog(LOG_TYPE_RUN, LOG_LEVEL_WARN, skip, a...)
 }
 
-func (this *LogInstance) RunLogError(a ...interface{}) error {
-	return this.SaveLog(LOG_TYPE_RUN, LOG_LEVEL_ERROR, a...)
+func (this *LogInstance) RunLogError(skip int, a ...interface{}) error {
+	skip++
+	return this.SaveLog(LOG_TYPE_RUN, LOG_LEVEL_ERROR, skip, a...)
 }
 
-func (this *LogInstance) RunLogFatal(a ...interface{}) error {
-	return this.SaveLog(LOG_TYPE_RUN, LOG_LEVEL_FATAL, a...)
+func (this *LogInstance) RunLogFatal(skip int, a ...interface{}) error {
+	skip++
+	return this.SaveLog(LOG_TYPE_RUN, LOG_LEVEL_FATAL, skip, a...)
 }
 
 /*
@@ -452,51 +453,63 @@ func SetLogLevel(logLevel int) {
 }
 
 /********************** 系统日志 **************************/
-func LogTrace(a ...interface{}) error {
-	return inst.LogTrace(a...)
+func LogTrace(skip int, a ...interface{}) error {
+	skip++
+	return inst.LogTrace(skip, a...)
 }
 
-func LogDebug(a ...interface{}) error {
-	return inst.LogDebug(a...)
+func LogDebug(skip int, a ...interface{}) error {
+	skip++
+	return inst.LogDebug(skip, a...)
 }
 
-func LogInfo(a ...interface{}) error {
-	return inst.LogInfo(a...)
+func LogInfo(skip int, a ...interface{}) error {
+	skip++
+	return inst.LogInfo(skip, a...)
 }
 
-func LogWarn(a ...interface{}) error {
-	return inst.LogWarn(a...)
+func LogWarn(skip int, a ...interface{}) error {
+	skip++
+	return inst.LogWarn(skip, a...)
 }
 
-func LogError(a ...interface{}) error {
-	return inst.LogError(a...)
+func LogError(skip int, a ...interface{}) error {
+	skip++
+	return inst.LogError(skip, a...)
 }
 
-func LogFatal(a ...interface{}) error {
-	return inst.LogFatal(a...)
+func LogFatal(skip int, a ...interface{}) error {
+	skip++
+	return inst.LogFatal(skip, a...)
 }
 
 /********************** 运行日志 **************************/
-func RunLogTrace(a ...interface{}) error {
-	return inst.RunLogTrace(a)
+func RunLogTrace(skip int, a ...interface{}) error {
+	skip++
+	return inst.RunLogTrace(skip, a...)
 }
 
-func RunLogDebug(a ...interface{}) error {
-	return inst.RunLogDebug(a...)
+func RunLogDebug(skip int, a ...interface{}) error {
+	skip++
+	return inst.RunLogDebug(skip, a...)
 }
 
-func RunLogInfo(a ...interface{}) error {
-	return inst.RunLogInfo(a...)
+func RunLogInfo(skip int, a ...interface{}) error {
+	skip++
+	return inst.RunLogInfo(skip, a...)
 }
 
-func RunLogWarn(a ...interface{}) error {
-	return inst.RunLogWarn(a...)
+func RunLogWarn(skip int, a ...interface{}) error {
+	skip++
+	return inst.RunLogWarn(skip, a...)
 }
 
-func RunLogError(a ...interface{}) error {
-	return inst.RunLogError(a...)
+func RunLogError(skip int, a ...interface{}) error {
+	skip++
+	return inst.RunLogError(skip, a...)
 }
 
-func RunLogFatal(a ...interface{}) error {
-	return inst.RunLogFatal(a...)
+func RunLogFatal(skip int, a ...interface{}) error {
+	skip++
+	return inst.RunLogFatal(skip, a...)
 }

@@ -1,12 +1,14 @@
 package OS
 
 import (
+	"bufio"
 	"bytes"
 	"crypto/md5"
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"io"
 	"strconv"
 	"strings"
@@ -56,9 +58,20 @@ func CreateText(args ...interface{}) (string, error) {
 			buf.WriteString(strconv.FormatInt(val.(int64), 10))
 		case string:
 			buf.WriteString(val.(string))
+		case []uint8:
+			buf.WriteString(string(val.([]uint8)))
 		default:
-			return "", errors.New("Unknown Type")
+			return "", errors.New(PrintfString("CreateText NonSupport Type:%T", val))
 		}
 	}
 	return buf.String(), nil
+}
+
+//格式化输出字符串;
+func PrintfString(format string, args ...interface{}) string {
+	buf := bytes.NewBuffer(make([]byte, 0))
+	w := bufio.NewWriter(buf)
+	fmt.Fprintf(w, format, args...)
+	w.Flush()
+	return buf.String()
 }

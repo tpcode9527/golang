@@ -10,23 +10,23 @@ func Testliblog(t *testing.T) {
 	//全局日志
 	InitLogConfig("./log/", "test", LOG_LEVEL_TRACE, 5, 10)
 
-	LogInfo("************** start ********************")
-	RunLogInfo("************** start ********************")
+	LogInfo(0, "************** start ********************")
+	RunLogInfo(0, "************** start ********************")
 
 	if false {
-		LogTrace("a != b")
-		LogDebug("a != b")
-		LogInfo("a != b")
-		LogWarn("a != b")
-		LogError("a != b")
-		LogFatal("a != b")
+		LogTrace(0, "a != b")
+		LogDebug(0, "a != b")
+		LogInfo(0, "a != b")
+		LogWarn(0, "a != b")
+		LogError(0, "a != b")
+		LogFatal(0, "a != b")
 
-		RunLogTrace("a != b")
-		RunLogDebug("a != b")
-		RunLogInfo("a != b")
-		RunLogWarn("a != b")
-		RunLogError("a != b")
-		RunLogFatal("a != b")
+		RunLogTrace(0, "a != b")
+		RunLogDebug(0, "a != b")
+		RunLogInfo(0, "a != b")
+		RunLogWarn(0, "a != b")
+		RunLogError(0, "a != b")
+		RunLogFatal(0, "a != b")
 	}
 
 	//多协程打印日志
@@ -40,19 +40,19 @@ func Testliblog(t *testing.T) {
 
 				start := time.Now()
 				for {
-					LogTrace(mark)
-					LogDebug(mark)
-					LogInfo(mark)
-					LogWarn(mark)
-					LogError(mark)
-					LogFatal(mark)
+					LogTrace(0, mark)
+					LogDebug(0, mark)
+					LogInfo(0, mark)
+					LogWarn(0, mark)
+					LogError(0, mark)
+					LogFatal(0, mark)
 
-					RunLogTrace(mark)
-					RunLogDebug(mark)
-					RunLogInfo(mark)
-					RunLogWarn(mark)
-					RunLogError(mark)
-					RunLogFatal(mark)
+					RunLogTrace(0, mark)
+					RunLogDebug(0, mark)
+					RunLogInfo(0, mark)
+					RunLogWarn(0, mark)
+					RunLogError(0, mark)
+					RunLogFatal(0, mark)
 
 					if time.Now().Sub(start).Seconds() > 10 {
 						break
@@ -71,18 +71,18 @@ func Testliblog(t *testing.T) {
 		logger := NewLogInstance()
 		logger.InitLog("./log/", "MBO", LOG_LEVEL_DEBUG, 1, 10)
 
-		logger.LogTrace("a != b")
-		logger.LogDebug("a != b")
-		logger.LogInfo("a != b")
-		logger.LogWarn("a != b")
-		logger.LogError("a != b")
-		logger.LogFatal("a != b")
+		logger.LogTrace(0, "a != b")
+		logger.LogDebug(0, "a != b")
+		logger.LogInfo(0, "a != b")
+		logger.LogWarn(0, "a != b")
+		logger.LogError(0, "a != b")
+		logger.LogFatal(0, "a != b")
 
-		logger.RunLogTrace("a != b")
-		logger.RunLogDebug("a != b")
-		logger.RunLogInfo("a != b")
-		logger.RunLogWarn("a != b")
-		logger.RunLogError("a != b")
-		logger.RunLogFatal("a != b")
+		logger.RunLogTrace(0, "a != b")
+		logger.RunLogDebug(0, "a != b")
+		logger.RunLogInfo(0, "a != b")
+		logger.RunLogWarn(0, "a != b")
+		logger.RunLogError(0, "a != b")
+		logger.RunLogFatal(0, "a != b")
 	}
 }
