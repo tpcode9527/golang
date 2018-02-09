@@ -4,6 +4,7 @@ package liblog
 import (
 	"errors"
 	//"fmt"
+	. "golang/libos"
 	"log"
 	"os"
 	"runtime"
@@ -78,28 +79,6 @@ func init() {
 
 	//全局日志实例
 	inst = NewLogInstance()
-}
-
-/*检测文件是否存在*/
-func PathExists(path string) (bool, error) {
-	_, err := os.Stat(path)
-	if err == nil {
-		return true, nil
-	}
-	if os.IsNotExist(err) {
-		return false, nil
-	}
-	return false, err
-}
-
-/*获取文件大小*/
-func GetFileSize(file string) int64 {
-	sFileInfo, err := os.Stat(file)
-	if nil != err {
-		log.Println("Load config fail. error:", err)
-		return -1
-	}
-	return sFileInfo.Size()
 }
 
 /*获取完整文件路径*/

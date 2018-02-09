@@ -1,7 +1,7 @@
 package OS
 
 import (
-	"bufio"
+	//"bufio"
 	"bytes"
 	"crypto/md5"
 	"crypto/rand"
@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -17,6 +18,28 @@ import (
 const (
 	PATH_DELIMITER = "/"
 )
+
+/*检测文件是否存在*/
+func PathExists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return false, err
+}
+
+/*获取文件大小*/
+func GetFileSize(file string) int64 {
+	sFileInfo, err := os.Stat(file)
+	if nil != err {
+		//log.Println("Load config fail. error:", err)
+		return -1
+	}
+	return sFileInfo.Size()
+}
 
 //生成32位md5字串
 func GetMd5String(s string) string {
@@ -69,9 +92,10 @@ func CreateText(args ...interface{}) (string, error) {
 
 //格式化输出字符串;
 func PrintfString(format string, args ...interface{}) string {
-	buf := bytes.NewBuffer(make([]byte, 0))
-	w := bufio.NewWriter(buf)
-	fmt.Fprintf(w, format, args...)
-	w.Flush()
-	return buf.String()
+	//	buf := bytes.NewBuffer(make([]byte, 0))
+	//	w := bufio.NewWriter(buf)
+	//	fmt.Fprintf(w, format, args...)
+	//	w.Flush()
+	//	return buf.String()
+	return fmt.Sprintf(format, args...)
 }
