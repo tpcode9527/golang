@@ -11,7 +11,7 @@ import (
 )
 
 //日志打印回调函数
-type LogPrint func(msg ...interface{}) (int, error)
+type LogPrint func(msg ...interface{}) error
 
 //数据库连接实例
 type MysqlInst struct {
@@ -33,9 +33,15 @@ type Transaction struct {
 	Trans []string
 }
 
+//日志输出;
+func ConsolePrint(a ...interface{}) error {
+	_, err := fmt.Println(a)
+	return err
+}
+
 //创建实例
 func NewDb() *MysqlInst {
-	return &MysqlInst{FnPrint: fmt.Println}
+	return &MysqlInst{FnPrint: ConsolePrint}
 }
 
 //创建事务对象

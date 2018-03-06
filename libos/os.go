@@ -10,9 +10,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	mrand "math/rand"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -25,10 +27,33 @@ func PathExists(path string) (bool, error) {
 	if err == nil {
 		return true, nil
 	}
+
 	if os.IsNotExist(err) {
 		return false, nil
 	}
 	return false, err
+}
+
+//获取新的随机文件名;
+func RandFile(dir string, org_name string) string {
+	var name string
+
+	//优先采用原有文件名
+	if 0 != len(org_name) {
+		name = org_name
+	} else {
+		name = UniqueId()
+	}
+
+	for {
+		if bExist, _ := PathExists(dir + name); !bExist {
+			break
+		}
+
+		name = UniqueId()
+	}
+
+	return name
 }
 
 /*获取文件大小*/
@@ -98,4 +123,13 @@ func PrintfString(format string, args ...interface{}) string {
 	//	w.Flush()
 	//	return buf.String()
 	return fmt.Sprintf(format, args...)
+}
+
+//随机数 [start, end)范围内的随机数;
+func Rand(start int64, end int64) int64 {
+	if end <= start {
+		return start
+	}
+	mrand.Seed(time.Now().UnixNano())
+	return start + mrand.Int63()%(end-start)
 }
