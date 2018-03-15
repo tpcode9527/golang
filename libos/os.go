@@ -133,3 +133,31 @@ func Rand(start int64, end int64) int64 {
 	mrand.Seed(time.Now().UnixNano())
 	return start + mrand.Int63()%(end-start)
 }
+
+//获取时间字符串:输出格式为：2006-01-02 15:04:05;
+func LocalTime(nTime int64) string {
+	if nTime < 1 {
+		return time.Now().Format("2006-01-02 15:04:05")
+	}
+	return time.Unix(nTime, 0).Format("2006-01-02 15:04:05")
+}
+
+//获取时间字符串:输出格式为：20060102150405;
+func LocalTime1(nTime int64) string {
+	var tm time.Time
+	if nTime < 1 {
+		tm = time.Now()
+	} else {
+		tm = time.Unix(nTime, 0)
+	}
+	return tm.Format("20060102150405")
+}
+
+//tm格式: "2017-02-27 17:30:20";
+func LocalTimeToTime(tm string) int64 {
+	if 0 == len(tm) {
+		return time.Now().Unix()
+	}
+	p, _ := time.Parse("2006-01-02 15:04:05", tm)
+	return p.Unix()
+}
